@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	LoadDictionary()
 	bot, err := tgbotapi.NewBotAPI(APIKey)
 	if err != nil {
 		log.Panic(err)
@@ -40,7 +41,17 @@ func main() {
 				if added := AddToDictionary(m.CommandArguments()); added {
 					output = "Erfolgreich hinzgefügt."
 				} else {
-					output = "Fehler beim hinzufügen, ist das Wort bereits in der Whitelist?"
+					output = "Fehler beim Hinzufügen, ist das Wort bereits in der Whitelist?"
+				}
+				msg := tgbotapi.NewMessage(m.Chat.ID, output)
+				bot.Send(msg)
+				break
+			case "remove":
+				var output string
+				if RemoveFromDictionary(m.CommandArguments()) {
+					output = "Erfolgreich entfernt."
+				} else {
+					output = "Fehler beim Entfernen, ist das Wort überhaupt in der Whitelist?"
 				}
 				msg := tgbotapi.NewMessage(m.Chat.ID, output)
 				bot.Send(msg)

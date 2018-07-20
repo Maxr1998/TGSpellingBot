@@ -17,7 +17,9 @@ const defaultParams = "text=%s&language=%s&motherTongue=de-DE&enabledCategories=
 const langDE = "de-DE"
 const langEN = "en-US"
 
-var whitelist = []string{"jo", "joah", "kek", "kk", "lol", "ok"}
+const whiteListFile = "whitelist.json"
+
+var whitelist = make([]string, 0)
 
 // Response represents the language tool API response
 type Response struct {
@@ -109,14 +111,45 @@ func queryAPI(text, lang string, res *Response, wg *sync.WaitGroup) {
 	}
 }
 
+// LoadDictionary loads the dictionary from the disk
+func LoadDictionary() {
+	data, err := ioutil.ReadFile(whiteListFile)
+	if err != nil {
+		return
+	}
+	if json.Unmarshal(data, &whitelist) != nil {
+		whitelist = make([]string, 0)
+	}
+}
+
 // AddToDictionary adds a word to the whitelist
 func AddToDictionary(word string) bool {
 	added := false
 	added, whitelist = AddToSortedStringSet(whitelist, word)
 	if added {
 		// Commit the JSON to disk
+		data, err := json.Marshal(whitelist)
+		if err != nil {
+			return false
+		}
+		return ioutil.WriteFile(whiteListFile, data, 0644) == nil
 	}
-	return added
+	return false
+}
+
+// RemoveFromDictionary removes a word from the whitelist
+func RemoveFromDictionary(word string) bool {
+	removed := false
+	removed, whitelist = RemoveFromSortedStringSet(whitelist, word)
+	if removed {
+		// Commit the JSON to disk
+		data, err := json.Marshal(whitelist)
+		if err != nil {
+			return false
+		}
+		return ioutil.WriteFile(whiteListFile, data, 0644) == nil
+	}
+	return false
 }
 
 // QueryWhitelist returns the whitelist as a string

@@ -17,3 +17,13 @@ func AddToSortedStringSet(set []string, element string) (bool, []string) {
 	set[i] = element
 	return true, set
 }
+
+// RemoveFromSortedStringSet remove element from the set (which must be sorted) if possible
+func RemoveFromSortedStringSet(set []string, element string) (bool, []string) {
+	i := sort.SearchStrings(set, element)
+	if i < len(set) && set[i] == element {
+		copy(set[i:], set[i+1:])
+		return true, set[:len(set)-1]
+	}
+	return false, set
+}
