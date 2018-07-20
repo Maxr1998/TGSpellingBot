@@ -44,8 +44,10 @@ func CheckText(text string) map[string]string {
 	go queryAPI(text, langDE, &deRes, &wg)
 	go queryAPI(text, langEN, &enRes, &wg)
 	wg.Wait()
-	if deRes.Error != nil || enRes.Error != nil {
+	if deRes.Error != nil {
 		deRes.Error.log()
+		return nil
+	} else if enRes.Error != nil {
 		enRes.Error.log()
 		return nil
 	}
@@ -105,6 +107,21 @@ func queryAPI(text, lang string, res *Response, wg *sync.WaitGroup) {
 		res.Error = &appError{"JSON failed", err}
 		return
 	}
+}
+
+// AddToDictionary adds a word to the whitelist
+func AddToDictionary(word string) bool {
+	added := false
+	added, whitelist = AddToSortedStringSet(whitelist, word)
+	if added {
+		// Commit the JSON to disk
+	}
+	return added
+}
+
+// QueryWhitelist returns the whitelist as a string
+func QueryWhitelist() string {
+	return fmt.Sprintln(whitelist)
 }
 
 type appError struct {
