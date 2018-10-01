@@ -28,7 +28,6 @@ func main() {
 						output += "\n- " + fail + "\t→ " + correction
 					}
 					msg := tgbotapi.NewMessage(m.Chat.ID, output)
-					msg.ParseMode = tgbotapi.ModeMarkdown
 					msg.ReplyToMessageID = m.MessageID
 
 					bot.Send(msg)
