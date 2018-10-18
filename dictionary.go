@@ -7,13 +7,14 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
 )
 
 const apiURL = "https://languagetool.org/api/v2/check"
-const defaultParams = "text=%s&language=%s&motherTongue=de-DE&enabledCategories=TYPOS,GRAMMAR&enabledOnly=true"
+const defaultParams = "text=%s&language=%s&motherTongue=de-DE&enabledCategories=TYPOS%%2CGRAMMAR&enabledOnly=true"
 const langDE = "de-DE"
 const langEN = "en-US"
 
@@ -91,20 +92,17 @@ func CheckText(text string) map[string]string {
 
 func queryAPI(text, lang string, res *Response, wg *sync.WaitGroup) {
 	defer wg.Done()
-	request, err := http.NewRequest("post", apiURL, bytes.NewBuffer([]byte(fmt.Sprintf(defaultParams, text, lang))))
-	if err != nil {
-		res.Error = &appError{"NewRequest failed", err}
-		return
-	}
-	client := &http.Client{}
-	htmlRes, err := client.Do(request)
+	params := fmt.Sprintf(defaultParams, url.QueryEscape(text), lang)
+	fmt.Println(params)
+	postResponse, err := http.Post(apiURL, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte(params)))
 	if err != nil {
 		res.Error = &appError{"POST failed", err}
 		return
 	}
-	defer htmlRes.Body.Close()
+	defer postResponse.Body.Close()
 
-	body, _ := ioutil.ReadAll(htmlRes.Body)
+	body, _ := ioutil.ReadAll(postResponse.Body)
+	fmt.Println(string(body))
 	if err := json.Unmarshal(body, &res); err != nil {
 		res.Error = &appError{"JSON failed", err}
 		return
